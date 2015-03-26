@@ -1,0 +1,21 @@
+error_reporting
+
+
+ini_set('display_error', 1);
+display_start_errors
+
+
+<<<GRETING
+GRETEENG - редко используемый формат строк, в отличие от '' и "".
+
+$a[0] - выведет первую строку строки a, но с русским текстом проблемы...
+
+
+очистить массив от пустых значений:
+- сравнить по разнице с пустым массивом  $tt = [''];
+$ff = array_diff($words, $tt);
+- или форич key c if(empty(trim($value
+unset($words[$key])
+
+
+скачать вин гетхаб

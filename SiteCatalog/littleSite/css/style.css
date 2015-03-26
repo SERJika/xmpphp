@@ -1,0 +1,50 @@
+* {
+    margin:0;
+    padding: 0;
+}
+body {
+    width: 1200px;
+    margin: 0 auto;
+}
+nav {
+    text-align: left;
+}
+ul {
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+li {
+    list-style-type: none;
+}
+h2 {
+    margin-bottom: 20px;
+    margin-left: 240px;
+}
+.inline, .paginator {
+    display: inline-block;
+    margin: 10px 5px;
+}
+img {
+    display: inline-block;
+    float: left;
+    width: 200px;
+    height: 150px;
+    margin: 10px 30px 20px 0;
+}
+.nofloat {
+    clear: both;
+}
+.good_parameters, .good_parameters_price {
+    float: left;
+    height: 80px;
+    margin-right: 20px;
+}
+.good_parameters_price {
+    width: 70px;
+    text-align: right;
+    line-height: 70px;
+}
+input {
+    margin-right: 30px;
+}

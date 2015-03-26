@@ -1,0 +1,123 @@
+<?php
+
+
+
+// Development
+ini_set('display_errors', 'On');
+ini_set('idisplay_startup_errors', 'On');
+ini_set('error_reporting', '-1');
+ini_set('log_errors', 'On');
+
+// Production
+// ini_set('display_errors', 'Off');
+// ini_set('idisplay_startup_errors', 'Off');
+// ini_set('error_reporting', 'E_ALL');
+// ini_set('log_errors', 'On');
+
+
+// function exception_handler($exception) {
+//   echo "Произошла ошибка типа &ltисключение&gt: " , $exception->getMessage(), "\n";
+// }
+// set_exception_handler('exception_handler');
+?>
+
+
+
+
+<?php
+class Menu
+{
+    public $title;
+    protected $items = [];
+
+    public function __construct($title, $items)
+    {
+        $this->title = $title;
+        $this->items = $items;
+    }
+    public function render()
+    {
+        echo '<ul>';
+        foreach ($this->items as $key => $value) {
+            echo '<li><a href="' . $value['link'] . '">' . $value['title'] . '</a></li>';
+        }
+        echo '</ul>';
+    }
+}
+
+$itemsMain = [
+    [
+        'title' => 'О нас',
+        'link' => '?page=about',
+    ],
+    [
+        'title' => 'Каталог',
+        'link' => '?page=products',
+    ],
+    [
+        'title' => 'Как заказать',
+        'link' => '?page=howBuy',
+    ],
+    [
+        'title' => 'Контакты',
+        'link' => '?page=contacts',
+    ],
+];
+
+$newTopMenu = new ListMenu('Лист меню', $items);
+$newTopMenu->render();
+var_dump($newTopMenu);
+unset($newTopMenu);
+$items = [
+    [
+        'title' => 'Реквизиты',
+        'link' => '?page=info',
+    ],
+    [
+        'title' => 'Про доставку',
+        'link' => '?page=delivery',
+    ],
+];
+$leftMenu = new Menu('Второе меню', $items);
+$leftMenu->render();
+
+?>
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+<style type="text/css">
+    
+</style>
+
+
+
+</head>
+<body>
+
+<div class="top">
+	<div class="top-wrapper">
+		<a class="cart" id="cart">Корзина</a>
+	</div>
+</div>
+<header>
+	<div class="header-wrapper">
+		<nav>
+			<?php $mainMenu = new Menu('Основнаое меню', $itemsMain);
+            $mainMenu->render();
+            ?>
+		</nav>
+	</div>
+</header>
+
+</body>
+</html>
+
+
+<?php
+
+
+?>

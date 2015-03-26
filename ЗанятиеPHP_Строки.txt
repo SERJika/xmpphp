@@ -1,0 +1,86 @@
+$page = (int)$page
+is_int
+is_numeric
+
+<<<GREETING  текст и переменные GREETING = <<<ANYENGLISHWORD текст и переменные ANYENGLISHWORD
+
+ucfirst
+
+nl2br
+
+htmlspechialchars
+
+array_filter - убрать пустые значения массива
+
+// function exception_handler($exception) {
+//   echo "Произошла ошибка типа &ltисключение&gt: " , $exception->getMessage(), "\n";
+// }
+// set_exception_handler('exception_handler');
+
+
+
+<Directory "C:\xampp\htdocs\epicphp">
+	Options Indexes FollowSymLinks Includes
+	execCGI
+	AllowOverride All
+	Order allow,deny
+	Allow from all
+</...>
+
+
+phpinfo()
+
+
+mail()
+
+$headers = "From: My Site <info@mysite.com>\r\n"; 
+$headers .= "X-Sender: <info@mysite.com>\r\n"; 
+$headers .= "Reply-To: $admin_mail_1\r\n";  
+$headers .= "MIME-Version: 1.0\r\n";  
+$headers .= "Content-Type: text/html; charset=utf8\r\n";  
+$headers .= "X-Mailer: PHP5\r\n";   
+$headers .= "X-Priority: 3\r\n";  
+$headers .= "Return-Path: <info@mysite.com>\r\n"; 
+
+
+
+echo __DIR__ __LINE__ __FILE__
+
+
+file() сама справляется с переносом строк, не надо думать \n или \r Или \n\r
+
+
+весна яндекс ру
+
+автопоэт
+
+
+вамбат
+
+
+
+
+
+
+
+
+
+
+
+
+----
+
+библиотеки
+html purifier
+tidy html
+
+
+:q!	- так выходят из vim (консольный текстовый редактор)
+
+Устаревшие системы контроля версий
+CVS
+SVN
+
+
+SourceTree и Tower - визуальные клиенты для GitHub
+

@@ -1,0 +1,194 @@
+Безопасный метод авторизации на PHP
+Давайте посмотрим вокруг: форумы, интернет магазины, гостевые книги и т.д. используют регистрацию и последующую авторизацию пользователей. Можно даже сказать, что это почти необходимая функция каждого сайта (только если это не домашняя страничка Васи Пупкина или не визитная карточка, какой-нибудь небольшой компании). Сегодня я хочу поделиться со всеми новичками информацией, о том, как лучше это все реализовать.
+Модель авторизации:
+Клиент
+Регистрация:
+логин (a-z0-9)
+пароль
+Вход:
+логин
+пароль
+Cookie:
+уникальный идентификатор юзера
+хэш
+Сервер MySQL
+Таблица users
+user_id (int(11))
+user_login (Varchar(30))
+user_password (varchar(32))
+user_hash (varchar(32))
+user_ip (int(10)) по умолчанию 0
+При регистрации в базу данных записывается логин пользователя и пароль(в двойном md5 шифровании)
+При авторизация, сравниваеться логин и пароль, если они верны, то генерируеться случайная строка, которая хешируеться и добавляеться в БД в строку user_hash. Также записываеться IP адрес пользователя(но это у нас будет опциональным, так как кто-то сидит через Proxy, а у кого-то IP динамический... тут уже пользователь сам будет выбирать безопасность или удобство). В куки пользователя мы записываем его уникальный индетификатор и сгенерированный hash.
+
+Почему надо хранить в куках хеш случайно сгенерированной строки, а не хеш пароля?
+1. Из-за невнимательности программиста, во всей системе могут быть дырки, воспользовавшийсь этими дырками, злоумышленик может вытащить хеш пароля из БД и подставить его в свои куки, тем самым получить доступ к закрытым данным. В нашем же случае, двойной хеш пароля не чем не сможет помочь хакеру, так как расшифровать он его не сможет(теоретически это возможно, но на это он потратит не один месяц, а может быть и год) а воспользоваться этим хешем ему негде, ведь у нас при авторизации свой уникальный хеш прикрепленный к IP пользователя. 
+2. Если злоумышленик вытащит трояном у пользователя уникальный хеш, воспользовать им он также не сможет(разве если только, пользователь решил принебречь своей безопастностью и выключил привязку к IP при авторизации). 
+
+Реализация
+Структура таблицы `users` в базе данных 'testtable'
+CREATE TABLE `users` (
+    `user_id` int(11) unsigned NOT NULL auto_increment,
+    `user_login` varchar(30) NOT NULL,
+    `user_password` varchar(32) NOT NULL,
+    `user_hash` varchar(32) NOT NULL,
+    `user_ip` int(10) unsigned NOT NULL default '0',
+    PRIMARY KEY (`user_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=cp1251 AUTO_INCREMENT=1 ;
+
+register.php
+<?
+// Страница регистрации нового пользователя
+
+# Соединямся с БД
+$link=mysqli_connect("localhost", "mysql_user", "mysql_password", "testtable");
+
+if(isset($_POST['submit']))
+{
+    $err = array();
+
+    # проверям логин
+    if(!preg_match("/^[a-zA-Z0-9]+$/",$_POST['login']))
+    {
+        $err[] = "Логин может состоять только из букв английского алфавита и цифр";
+    }
+
+    if(strlen($_POST['login']) < 3 or strlen($_POST['login']) > 30)
+    {
+        $err[] = "Логин должен быть не меньше 3-х символов и не больше 30";
+    }
+
+    # проверяем, не сущестует ли пользователя с таким именем
+    $query = mysqli_query($link, "SELECT COUNT(user_id) FROM users WHERE user_login='".mysqli_real_escape_string($link, $_POST['login'])."'");
+    if(mysqli_num_rows($query) > 0)
+    {
+        $err[] = "Пользователь с таким логином уже существует в базе данных";
+    }
+
+    # Если нет ошибок, то добавляем в БД нового пользователя
+    if(count($err) == 0)
+    {
+
+        $login = $_POST['login'];
+
+        # Убераем лишние пробелы и делаем двойное шифрование
+        $password = md5(md5(trim($_POST['password'])));
+
+        mysqli_query($link,"INSERT INTO users SET user_login='".$login."', user_password='".$password."'");
+        header("Location: login.php"); exit();
+    }
+    else
+    {
+        print "<b>При регистрации произошли следующие ошибки:</b><br>";
+        foreach($err AS $error)
+        {
+            print $error."<br>";
+        }
+    }
+}
+?>
+
+<form method="POST">
+Логин <input name="login" type="text"><br>
+Пароль <input name="password" type="password"><br>
+<input name="submit" type="submit" value="Зарегистрироваться">
+</form>
+
+
+login.php
+<?
+// Страница авторизации
+
+# Функция для генерации случайной строки
+function generateCode($length=6) {
+    $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHI JKLMNOPRQSTUVWXYZ0123456789";
+    $code = "";
+    $clen = strlen($chars) - 1;
+    while (strlen($code) < $length) {
+            $code .= $chars[mt_rand(0,$clen)];
+    }
+    return $code;
+}
+
+# Соединямся с БД
+$link=mysqli_connect("localhost", "mysql_user", "mysql_password", "testtable");
+
+if(isset($_POST['submit']))
+{
+    # Вытаскиваем из БД запись, у которой логин равняеться введенному
+    $query = mysqli_query($link,"SELECT user_id, user_password FROM users WHERE user_login='".mysqli_real_escape_string($link,$_POST['login'])."' LIMIT 1");
+    $data = mysqli_fetch_assoc($query);
+
+    # Сравниваем пароли
+    if($data['user_password'] === md5(md5($_POST['password'])))
+    {
+        # Генерируем случайное число и шифруем его
+        $hash = md5(generateCode(10));
+
+        if(!@$_POST['not_attach_ip'])
+        {
+            # Если пользователя выбрал привязку к IP
+            # Переводим IP в строку
+            $insip = ", user_ip=INET_ATON('".$_SERVER['REMOTE_ADDR']."')";
+        }
+
+        # Записываем в БД новый хеш авторизации и IP
+        mysqli_query($link, "UPDATE users SET user_hash='".$hash."' ".$insip." WHERE user_id='".$data['user_id']."'");
+
+        # Ставим куки
+        setcookie("id", $data['user_id'], time()+60*60*24*30);
+        setcookie("hash", $hash, time()+60*60*24*30);
+
+        # Переадресовываем браузер на страницу проверки нашего скрипта
+        header("Location: check.php"); exit();
+    }
+    else
+    {
+        print "Вы ввели неправильный логин/пароль";
+    }
+}
+?>
+<form method="POST">
+Логин <input name="login" type="text"><br>
+Пароль <input name="password" type="password"><br>
+Не прикреплять к IP(не безопасно) <input type="checkbox" name="not_attach_ip"><br>
+<input name="submit" type="submit" value="Войти">
+</form>
+
+
+check.php
+<?
+// Скрипт проверки
+
+# Соединямся с БД
+$link=mysqli_connect("localhost", "mysql_user", "mysql_password", "testtable");
+
+if (isset($_COOKIE['id']) and isset($_COOKIE['hash']))
+{
+    $query = mysqli_query($link, "SELECT *,INET_NTOA(user_ip) AS user_ip FROM users WHERE user_id = '".intval($_COOKIE['id'])."' LIMIT 1");
+    $userdata = mysqli_fetch_assoc($query);
+
+    if(($userdata['user_hash'] !== $_COOKIE['hash']) or ($userdata['user_id'] !== $_COOKIE['id'])
+ or (($userdata['user_ip'] !== $_SERVER['REMOTE_ADDR'])  and ($userdata['user_ip'] !== "0")))
+    {
+        setcookie("id", "", time() - 3600*24*30*12, "/");
+        setcookie("hash", "", time() - 3600*24*30*12, "/");
+        print "Хм, что-то не получилось";
+    }
+    else
+    {
+        print "Привет, ".$userdata['user_login'].". Всё работает!";
+    }
+}
+else
+{
+    print "Включите куки";
+}
+?>
+
+Для защиты формы логина от перебора, можно использовать капчу или временную задержку на повторную авторизацию.
+Автор: http://jiexaspb.habrahabr.ru/. Адаптация под PHP 5.5 KDG.
+Другие примеры авторизации на PHP:
+http401.php
+avtorizacija.php
+avtorizacija3.php

@@ -1,0 +1,72 @@
+
+ Re: Покритикуйте корзину заказов (php)  [new]
+guest_112 
+Guest	Разобрался )))
+Вот рабочий вариант =)
+Добавление в корзину:
+<?php
+if (isset($_GET["id"])){
+session_start();
+$hostname = "";
+$usern = "";
+$pass = "";
+$dbName = "";
+mysql_connect($hostname,$usern,$pass) OR DIE("Не могу создать соединение ");
+mysql_select_db($dbName) or die("Не могу подключиться к базе"); 
+$query = "SELECT * FROM tbl_products WHERE id='" . mysql_real_escape_string($_GET["id"]) . "'";
+$res = mysql_query($query) or die(mysql_error());
+$row=mysql_fetch_array($res);
+$arr = unserialize($_SESSION['bask']); 
+if ($arr[0][1] != '')
+{
+$i=count($arr);
+$arr[$i][0]=$row[0];
+$arr[$i][1]=$row[3]."-".$row[4];
+$arr[$i][2]=1;
+$arr[$i][3]=$row[6];
+}
+else
+{
+$arr[0][0]=$row[0];
+$arr[0][1]=$row[3]."-".$row[4];
+$arr[0][2]=1;
+$arr[0][3]=$row[6];
+}
+$_SESSION['bask'] = serialize($arr); 
+header('location:'.$_SERVER['HTTP_REFERER']);
+} else
+{
+echo "error";
+}
+?>
+Вывод корзины:
+<?php
+
+$arr = unserialize($_SESSION['bask']); 
+echo count($arr);
+echo $arr;
+if (count($arr)>0) 
+{
+for ($i = 0; $i < count($arr); $i++) {
+$col=$col + $arr[$i][2];
+$rub=$rub + $arr[$i][3];
+}
+} else {
+$col=0;
+$rub=0;
+}
+echo "В вашей корзине <b>$col</b> товаров на сумму <b>$rub</b> рублей.  <p><a href=''>Оформить заказ</a>\n";
+
+?>
+24 янв 10, 01:56    [8235503]     Ответить | Цитировать Сообщить модератору
+  Re: Покритикуйте корзину заказов (php)  [new]
+Ренат 
+Member
+
+Откуда: Елабуга & Казань & Москва & Набережные челны
+Сообщений: 4200
+Топикстартер, зачем вы сериализуете массив когда в сессию загоняете? Почему мы просто массив сесии не присвоите?
+24 янв 10, 11:36    [8235789]     Ответить | Цитировать Сообщить модератору
+  Re: Покритикуйте корзину заказов (php)  [new]
+guest_112 
+Guest	Ренат, да я и не знал что так можно =)
